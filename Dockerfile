@@ -1,28 +1,15 @@
-FROM ubuntu:20.04
+FROM freecad/freecad-container:conda-python-3.10
 
-ENV DEBIAN_FRONTEND=noninteractive
-
-RUN apt-get update && apt-get install -y \
-    software-properties-common \
-    wget \
-    curl \
-    git \
-    python3 \
-    python3-pip \
-    libgl1 \
-    libxrender1 \
-    libsm6 \
-    libxext6 \
-    && add-apt-repository ppa:freecad-maintainers/freecad-stable -y \
-    && apt-get update && apt-get install -y freecad \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
+# Create working directory
 WORKDIR /app
 COPY . /app
 
-RUN pip3 install --upgrade pip && \
-    pip3 install -r requirements.txt
+# Install FastAPI + Uvicorn
+RUN pip install --upgrade pip && \
+    pip install fastapi uvicorn
 
+# Expose the port for FastAPI
 EXPOSE 10000
+
+# Run the FastAPI app
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "10000"]

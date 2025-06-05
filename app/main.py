@@ -16,7 +16,8 @@ def read_root():
 def convert_file(file: UploadFile = File(...)):
     file_id = str(uuid.uuid4())
     input_path = os.path.join(UPLOAD_DIR, f"{file_id}.step")
-    output_path = os.path.join(UPLOAD_DIR, f"{file_id}.dxf")
+    output_dir = os.path.join(UPLOAD_DIR, file_id)
+    os.makedirs(output_dir, exist_ok=True)
 
     with open(input_path, "wb") as f:
         f.write(file.file.read())
@@ -26,15 +27,20 @@ def convert_file(file: UploadFile = File(...)):
             "FreeCADCmd",
             "/app/convert_to_dxf.py",
             input_path,
-            output_path
+            output_dir
         ], check=True, capture_output=True, text=True)
 
+        dxf_files = [
+            f for f in os.listdir(output_dir)
+            if f.lower().endswith(".dxf")
+        ]
         return {
             "filename": file.filename,
             "status": "converted",
-            "output": output_path,
+            "outputs": dxf_files,
             "logs": result.stdout
         }
+
     except subprocess.CalledProcessError as e:
         return {
             "error": "Conversion failed",

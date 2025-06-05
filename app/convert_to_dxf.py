@@ -1,41 +1,30 @@
 import FreeCAD
 import ImportGui
 import Part
-import MeshPart
-import os
+import Mesh
 import sys
+import os
 
-input_file = sys.argv[1]
+input_path = sys.argv[1]
 output_dir = sys.argv[2]
 
-doc = FreeCAD.newDocument()
-ImportGui.insert(input_file, doc.Name)
+doc = FreeCAD.newDocument("conversion")
+ImportGui.insert(input_path, doc.Name)
 doc.recompute()
 
-def is_sheet_metal_shape(obj):
-    # Heuristic: thin, prismatic shape with large flat faces
-    shape = obj.Shape
-    thickness_threshold = 2.5  # mm
-    try:
-        bounds = shape.BoundBox
-        thickness = min(bounds.XLength, bounds.YLength, bounds.ZLength)
-        return thickness < thickness_threshold
-    except:
-        return False
-
-def flatten_shape(shape):
-    # Very simplified "flattening": project shape to XY plane
-    sections = shape.Section(Part.makePlane(1000, 1000))
-    projection = sections.Project([FreeCAD.Vector(0, 0, 1)])
-    return projection
-
-dxf_count = 0
 for obj in doc.Objects:
-    if hasattr(obj, "Shape") and is_sheet_metal_shape(obj):
-        flat = flatten_shape(obj.Shape)
-        export_path = os.path.join(output_dir, f"part_{dxf_count}.dxf")
-        Part.export([flat], export_path)
-        print(f"Exported: {export_path}")
-        dxf_count += 1
+    if obj.TypeId == "Part::Feature":
+        shape = obj.Shape
+        # Heuristic: Identify flat-ish or thin parts likely to be sheet metal
+        if shape.BoundBox.ZLength < 5:  # Adjust threshold as needed
+            try:
+                flat_face = max(shape.Faces, key=lambda f: f.Area)
+                dxf_path = os.path.join(output_dir, f"{obj.Name}.dxf")
+                Draft.makeShape2DView(obj, FreeCAD.ActiveDocument.addObject("Part::Feature", f"{obj.Name}_view"))
+                doc.recompute()
+                ImportGui.export([obj], dxf_path)
+                print(f"[INFO] Exported: {dxf_path}")
+            except Exception as e:
+                print(f"[ERROR] Failed to export {obj.Name}: {str(e)}")
 
-print(f"Total DXFs created: {dxf_count}")
+print("[DONE] Conversion complete.")

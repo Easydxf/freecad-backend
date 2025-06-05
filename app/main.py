@@ -1,7 +1,12 @@
 from fastapi import FastAPI, UploadFile, File
-import uvicorn  # Required for local/dev running
+import os
+import uuid
+import subprocess
 
 app = FastAPI()
+
+UPLOAD_DIR = "/app/uploads"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @app.get("/")
 def read_root():
@@ -9,9 +14,29 @@ def read_root():
 
 @app.post("/convert")
 def convert_file(file: UploadFile = File(...)):
-    # placeholder: add your FreeCAD logic here
-    return {"filename": file.filename, "status": "processed"}
+    file_id = str(uuid.uuid4())
+    input_path = os.path.join(UPLOAD_DIR, f"{file_id}.step")
+    output_path = os.path.join(UPLOAD_DIR, f"{file_id}.dxf")
 
-# Only run uvicorn if this script is run directly (not when imported)
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=10000)
+    with open(input_path, "wb") as f:
+        f.write(file.file.read())
+
+    try:
+        result = subprocess.run([
+            "FreeCADCmd",
+            "/app/convert_to_dxf.py",
+            input_path,
+            output_path
+        ], check=True, capture_output=True, text=True)
+
+        return {
+            "filename": file.filename,
+            "status": "converted",
+            "output": output_path,
+            "logs": result.stdout
+        }
+    except subprocess.CalledProcessError as e:
+        return {
+            "error": "Conversion failed",
+            "details": e.stderr
+        }

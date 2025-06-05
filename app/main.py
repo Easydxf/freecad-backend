@@ -24,7 +24,7 @@ def convert_file(file: UploadFile = File(...)):
     try:
         result = subprocess.run([
             "FreeCADCmd",
-            "/app/convert_to_dxf.py",
+            "/app/app/convert_to_dxf.py",
             input_path,
             output_path
         ], check=True, capture_output=True, text=True)

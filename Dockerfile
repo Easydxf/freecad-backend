@@ -1,4 +1,4 @@
-FROM shijinzhong/freecad:latest
+FROM amrit3701/freecad-cli:latest
 
 WORKDIR /app
 

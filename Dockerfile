@@ -1,35 +1,18 @@
-FROM ubuntu:20.04
-
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Install FreeCAD dependencies and Python
-RUN apt-get update && apt-get install -y \
-    software-properties-common \
-    wget \
-    curl \
-    git \
-    python3 \
-    python3-pip \
-    libgl1 \
-    libxrender1 \
-    libsm6 \
-    libxext6 \
-    freecad \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+# Base image with FreeCAD already set up
+FROM ghcr.io/freecad/freecad:latest
 
 # Set working directory
 WORKDIR /app
 
-# Copy all project files
+# Copy your code
 COPY . /app
 
-# Upgrade pip and install Python dependencies
-RUN pip3 install --upgrade pip
-RUN pip3 install -r requirements.txt
+# Install Python dependencies
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
 
-# Expose FastAPI port
+# Expose the FastAPI app
 EXPOSE 10000
 
-# Start FastAPI app via uvicorn (for Render)
+# Run your FastAPI app
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "10000"]

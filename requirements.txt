@@ -1,5 +1,3 @@
-# Canvas document: FreeCAD_SheetMetal_Backend
-
-fastapi
-uvicorn[standard]
-python-multipart
+fastapi==0.111.0
+uvicorn==0.30.0
+python-multipart==0.0.9

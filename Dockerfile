@@ -1,5 +1,3 @@
-# Canvas document: FreeCAD_SheetMetal_Backend
-# File: Dockerfile
 FROM amrit3701/freecad-cli:latest
 
 WORKDIR /app

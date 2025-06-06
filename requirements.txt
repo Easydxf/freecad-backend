@@ -1,3 +1,5 @@
+# Canvas document: FreeCAD_SheetMetal_Backend
+
 fastapi
-uvicorn
+uvicorn[standard]
 python-multipart
